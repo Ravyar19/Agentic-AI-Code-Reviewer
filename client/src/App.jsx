@@ -1,9 +1,10 @@
 import "./App.css";
+import CodeInputPage from "./pages/CodeInputPage";
 
 function App() {
   return (
     <>
-      <h1>Hello World</h1>
+      <CodeInputPage />
     </>
   );
 }
