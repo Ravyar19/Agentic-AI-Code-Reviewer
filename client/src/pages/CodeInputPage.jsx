@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import apiService from "../services/api";
 import {
   SparklesIcon,
   DocumentTextIcon,
@@ -7,6 +6,7 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import apiService from "../services/apiService";
 
 const Loader = () => (
   <div className="flex items-center justify-center space-x-2">
