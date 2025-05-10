@@ -12,9 +12,34 @@ async function analyzeSyntaxAndStyle(code, language) {
       model: "gemini-2.0-flash-thinking-exp-01-21",
     });
 
-    const prompt = `Analyze this ${language} code for syntax errors, adherence to common styling conventions (e.g., indentation, naming conventions for ${language}), and suggest improvements. Provide feedback as a list of issues with line numbers if possible. Do not provide any introductory or concluding remarks, only the list of issues. If there are no issues, say "No syntax or style issues found.". Code:
+    const prompt = `Analyze this JavaScript code for:
 
-${code}`;
+    1. **Syntax errors**: Identify code that would cause runtime errors or exceptions
+    2. **Style violations**: Evaluate against modern JavaScript conventions including:
+       - ESLint/Airbnb/Standard JS guideline adherence
+       - Proper indentation (2 or 4 spaces consistently)
+       - Naming conventions (camelCase for variables/functions, PascalCase for classes)
+       - ES6+ feature usage where appropriate (const/let vs var, arrow functions, etc.)
+       - Comment quality and JSDoc compliance
+    3. **Anti-patterns**: Flag problematic practices such as:
+       - Global variable pollution
+       - Unnecessary closures or complex nesting
+       - Memory leaks or performance bottlenecks
+       - Callback hell (vs. Promises/async-await)
+    
+    FORMAT REQUIREMENTS:
+    - List each issue with exact line number(s)
+    - Categorize as [CRITICAL], [MAJOR], or [MINOR]
+    - Provide corrected code snippets for each issue
+    - Include only the issues list - no introduction or conclusion
+    
+    If the code has no issues, respond only with: "No syntax or style issues found."
+    
+    CODE TO ANALYZE:
+    \`\`\`javascript
+    ${code}
+    \`\`\``;
+
     console.log("---- PROMPT SENT TO GEMINI ----");
     console.log(prompt);
     console.log("-------------------------------");
