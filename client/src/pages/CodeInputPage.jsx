@@ -1,11 +1,13 @@
 import { useState } from "react";
 import FeedbackCard from "../components/FeedbackCard";
+import RefactoringSuggestionCard from "../components/RefactoringSuggestionCard";
 import {
   SparklesIcon,
   DocumentTextIcon,
   ChevronDownIcon,
   ExclamationCircleIcon,
   CheckCircleIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import apiService from "../services/apiService";
 
@@ -35,6 +37,11 @@ const GlobalLoader = ({ text = "Reviewing..." }) => (
   </div>
 );
 
+const languages = [
+  { id: "javascript", name: "JavaScript" },
+  { id: "python", name: "Python" },
+];
+
 function CodeInputPage() {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
@@ -42,11 +49,6 @@ function CodeInputPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
-
-  const languages = [
-    { id: "javascript", name: "JavaScript" },
-    { id: "python", name: "Python" },
-  ];
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -68,10 +70,10 @@ function CodeInputPage() {
     }
     setIsLoading(true);
     setError("");
-    setReviewResult(null);
+    setReviewResult(null); // Clear previous results
     try {
       const data = await apiService.submitCodeForReview({ code, language });
-      setReviewResult(data);
+      setReviewResult(data); // This 'data' will now have more keys
     } catch (err) {
       setError(
         err.message ||
@@ -82,7 +84,7 @@ function CodeInputPage() {
     setIsLoading(false);
   };
 
-  const instructions = `1. Select the programming language.\n2. Paste your code or upload a file.\n3. Click "Submit for Review" to get AI-powered feedback on syntax, style, logic, and potential bugs.`;
+  const instructions = `1. Select programming language.\n2. Paste code or upload a file.\n3. Get AI feedback on syntax, style, logic, bugs, refactoring, and performance.`;
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center py-8 px-4 selection:bg-purple-500 selection:text-white">
@@ -104,6 +106,7 @@ function CodeInputPage() {
             {instructions}
           </pre>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -148,8 +151,7 @@ function CodeInputPage() {
                   className="sr-only"
                   onChange={handleFileChange}
                   accept=".js,.py,.ts,.tsx,.java,.c,.cpp,.cs,.go,.php,.rb,.rs,.swift,.kt"
-                />{" "}
-                {/* Added more common extensions */}
+                />
               </label>
             </div>
           </div>
@@ -169,12 +171,11 @@ function CodeInputPage() {
               placeholder={`// Start typing or paste your ${language} code here...`}
             />
           </div>
-
           <div className="flex items-center justify-end">
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]" // Added min-width
+              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]"
             >
               {isLoading ? (
                 <GlobalLoader />
@@ -210,6 +211,19 @@ function CodeInputPage() {
               feedback={null}
               isLoading={true}
             />
+            <RefactoringSuggestionCard
+              title="Refactoring Suggestions"
+              suggestions={null}
+              isLoading={true}
+            />
+            <FeedbackCard
+              title="Performance Insights"
+              feedback={null}
+              isLoading={true}
+              categoryIcon={
+                <CpuChipIcon className="h-6 w-6 mr-2 text-sky-400" />
+              }
+            />
           </div>
         )}
 
@@ -222,16 +236,26 @@ function CodeInputPage() {
             <FeedbackCard
               title="Syntax & Style"
               feedback={reviewResult.syntaxStyleFeedback}
-              isLoading={false}
             />
             <FeedbackCard
               title="Logic & Bugs"
               feedback={reviewResult.logicBugFeedback}
-              isLoading={false}
+            />
+            <RefactoringSuggestionCard
+              title="Refactoring Suggestions"
+              suggestions={reviewResult.refactoringSuggestions}
+            />
+            <FeedbackCard
+              title="Performance Insights"
+              feedback={reviewResult.performanceInsights}
+              categoryIcon={
+                <CpuChipIcon className="h-6 w-6 mr-2 text-sky-400" />
+              }
             />
           </div>
         )}
       </main>
+
       <footer className="mt-12 text-center text-gray-500 text-sm">
         <p>
           &copy; {new Date().getFullYear()} AI Code Reviewer. Powered by Gemini
