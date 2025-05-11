@@ -1,5 +1,7 @@
 const syntaxStyleAgent = require("../services/syntaxStyleAgent");
 const logicBugAgent = require("../services/logicBugAgent");
+const refactoringAgent = require("../services/refactoringAgent");
+const performanceAgent = require("../services/performanceAgent");
 
 exports.handleCodeReview = async (req, res) => {
   try {
@@ -16,20 +18,26 @@ exports.handleCodeReview = async (req, res) => {
         .json({ message: "Code and language are required." });
     }
 
-    // Call both agents concurrently
-    const [syntaxFeedback, logicFeedback] = await Promise.all([
+    const [
+      syntaxFeedback,
+      logicFeedback,
+      refactorSuggestions,
+      performanceInsights,
+    ] = await Promise.all([
       syntaxStyleAgent.analyzeSyntaxAndStyle(code, language),
       logicBugAgent.analyzeLogicAndBugs(code, language),
+      refactoringAgent.suggestRefactors(code, language),
+      performanceAgent.identifyPerformanceHotspots(code, language),
     ]);
 
-    // Combine results into a structured response
     res.status(200).json({
       syntaxStyleFeedback: syntaxFeedback,
       logicBugFeedback: logicFeedback,
+      refactoringSuggestions: refactorSuggestions,
+      performanceInsights: performanceInsights,
     });
   } catch (error) {
     console.error("Error during code review in controller:", error);
-    // Ensure the error message passed to the frontend is generic enough or well-structured
     let errorMessage = "Failed to review code.";
     if (error.message) {
       errorMessage = error.message;
