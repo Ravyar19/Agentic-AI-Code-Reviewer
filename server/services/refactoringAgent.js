@@ -8,9 +8,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 async function suggestRefactors(code, language) {
   try {
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_NAME || "gemini-pro",
+      model: "gemini-2.0-flash-thinking-exp-01-21",
     });
-
     const prompt = `Analyze the following JavaScript code for refactoring opportunities that would improve:
 
 1. **Readability & Maintainability**:

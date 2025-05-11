@@ -8,7 +8,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 async function identifyPerformanceHotspots(code, language) {
   try {
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_NAME || "gemini-pro",
+      model: "gemini-2.0-flash-thinking-exp-01-21",
     });
 
     const prompt = `Analyze the following ${language} code for potential performance bottlenecks and optimization opportunities:
