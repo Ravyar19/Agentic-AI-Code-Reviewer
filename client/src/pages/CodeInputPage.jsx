@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import apiService from "../services/api";
+import { useState } from "react";
 import FeedbackCard from "../components/FeedbackCard";
 import {
   SparklesIcon,
@@ -8,6 +7,7 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import apiService from "../services/apiService";
 
 const GlobalLoader = ({ text = "Reviewing..." }) => (
   <div className="flex items-center justify-center space-x-2 py-3">
