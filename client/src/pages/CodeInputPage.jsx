@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import apiService from "../services/api";
+import FeedbackCard from "../components/FeedbackCard";
 import {
   SparklesIcon,
   DocumentTextIcon,
@@ -6,14 +8,30 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import apiService from "../services/apiService";
 
-const Loader = () => (
-  <div className="flex items-center justify-center space-x-2">
-    <div className="w-4 h-4 rounded-full animate-pulse bg-blue-400"></div>
-    <div className="w-4 h-4 rounded-full animate-pulse bg-blue-400 animation-delay-200"></div>
-    <div className="w-4 h-4 rounded-full animate-pulse bg-blue-400 animation-delay-400"></div>
-    <span className="ml-2 text-gray-300">Reviewing...</span>
+const GlobalLoader = ({ text = "Reviewing..." }) => (
+  <div className="flex items-center justify-center space-x-2 py-3">
+    <svg
+      className="animate-spin h-5 w-5 text-blue-400"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+    <span className="text-gray-300">{text}</span>
   </div>
 );
 
@@ -64,19 +82,28 @@ function CodeInputPage() {
     setIsLoading(false);
   };
 
+  const instructions = `1. Select the programming language.\n2. Paste your code or upload a file.\n3. Click "Submit for Review" to get AI-powered feedback on syntax, style, logic, and potential bugs.`;
+
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center py-8 px-4">
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center py-8 px-4 selection:bg-purple-500 selection:text-white">
       <header className="mb-10 text-center">
         <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
           Agentic AI Code Reviewer
         </h1>
         <p className="mt-3 text-lg text-gray-400">
-          Submit your code for an AI-powered review focusing on syntax, style,
-          and more.
+          Get AI-powered insights into your code.
         </p>
       </header>
 
       <main className="w-full max-w-4xl bg-gray-800 shadow-2xl rounded-lg p-6 md:p-10">
+        <div className="mb-6 p-4 bg-gray-700/50 border border-gray-600 rounded-lg">
+          <h3 className="text-md font-semibold text-purple-300 mb-2">
+            How to use:
+          </h3>
+          <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">
+            {instructions}
+          </pre>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -91,7 +118,7 @@ function CodeInputPage() {
                   id="language"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none"
+                  className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md shadow-sm py-2.5 px-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none"
                 >
                   {languages.map((lang) => (
                     <option key={lang.id} value={lang.id}>
@@ -121,11 +148,11 @@ function CodeInputPage() {
                   className="sr-only"
                   onChange={handleFileChange}
                   accept=".js,.py,.ts,.tsx,.java,.c,.cpp,.cs,.go,.php,.rb,.rs,.swift,.kt"
-                />
+                />{" "}
+                {/* Added more common extensions */}
               </label>
             </div>
           </div>
-
           <div>
             <label
               htmlFor="codeInput"
@@ -147,10 +174,10 @@ function CodeInputPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]" // Added min-width
             >
               {isLoading ? (
-                <Loader />
+                <GlobalLoader />
               ) : (
                 <>
                   <SparklesIcon className="h-5 w-5 mr-2" />
@@ -162,40 +189,57 @@ function CodeInputPage() {
         </form>
 
         {error && (
-          <div className="mt-6 p-4 bg-red-900 border border-red-700 text-red-200 rounded-md flex items-start">
+          <div className="mt-6 p-4 bg-red-900/70 border border-red-700 text-red-200 rounded-md flex items-start">
             <ExclamationCircleIcon className="h-6 w-6 mr-3 text-red-400 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold">Error</h3>
+              <h3 className="font-semibold">Error Reviewing Code</h3>
               <p className="text-sm">{error}</p>
             </div>
           </div>
         )}
 
-        {reviewResult && (
-          <div className="mt-8 p-6 bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold text-gray-100 mb-4 flex items-center">
-              <CheckCircleIcon className="h-7 w-7 mr-2 text-green-400" />
-              Review Results
+        {isLoading && !reviewResult && (
+          <div className="mt-8">
+            <FeedbackCard
+              title="Syntax & Style"
+              feedback={null}
+              isLoading={true}
+            />
+            <FeedbackCard
+              title="Logic & Bugs"
+              feedback={null}
+              isLoading={true}
+            />
+          </div>
+        )}
+
+        {!isLoading && reviewResult && (
+          <div className="mt-8">
+            <h2 className="text-3xl font-semibold text-gray-100 mb-6 flex items-center">
+              <CheckCircleIcon className="h-8 w-8 mr-3 text-green-400" />
+              Review Analysis Complete
             </h2>
-            <div className="bg-gray-900 p-4 rounded-md overflow-x-auto">
-              <h3 className="text-lg font-medium text-purple-400 mb-2">
-                Syntax & Style Feedback:
-              </h3>
-              <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
-                {typeof reviewResult.syntaxStyleFeedback === "string"
-                  ? reviewResult.syntaxStyleFeedback
-                  : JSON.stringify(reviewResult.syntaxStyleFeedback, null, 2)}
-              </pre>
-            </div>
+            <FeedbackCard
+              title="Syntax & Style"
+              feedback={reviewResult.syntaxStyleFeedback}
+              isLoading={false}
+            />
+            <FeedbackCard
+              title="Logic & Bugs"
+              feedback={reviewResult.logicBugFeedback}
+              isLoading={false}
+            />
           </div>
         )}
       </main>
       <footer className="mt-12 text-center text-gray-500 text-sm">
         <p>
-          &copy; {new Date().getFullYear()} AI Code Reviewer. Powered by Gemini.
+          &copy; {new Date().getFullYear()} AI Code Reviewer. Powered by Gemini
+          & You.
         </p>
       </footer>
     </div>
   );
 }
+
 export default CodeInputPage;
