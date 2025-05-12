@@ -1,5 +1,4 @@
-import React, { useState, useRef } from "react";
-import apiService from "../services/api";
+import { useState, useRef } from "react";
 import FeedbackCard from "../components/FeedbackCard";
 import RefactoringSuggestionCard from "../components/RefactoringSuggestionCard";
 import {
@@ -13,6 +12,7 @@ import {
   DocumentDuplicateIcon,
   ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
+import apiService from "../services/apiService";
 
 // --- Helper Components ---
 

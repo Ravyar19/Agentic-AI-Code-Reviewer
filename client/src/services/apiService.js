@@ -7,7 +7,6 @@ const apiService = {
   submitCodeForReview: async (data) => {
     // data here is { code, language }
     try {
-      // Ensure the full URL is correct
       console.log(
         "Submitting to API:",
         `${API_BASE_URL}/review-code`,
@@ -23,8 +22,6 @@ const apiService = {
       );
       // Log the detailed error object
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error("Error data:", error.response.data);
         console.error("Error status:", error.response.status);
         console.error("Error headers:", error.response.headers);
@@ -33,13 +30,11 @@ const apiService = {
             `Request failed with status ${error.response.status}`
         );
       } else if (error.request) {
-        // The request was made but no response was received
         console.error("Error request:", error.request);
         throw new Error(
           "No response received from server. Check server logs and network."
         );
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error("Error message:", error.message);
         throw new Error(error.message || "Error in setting up the request.");
       }
