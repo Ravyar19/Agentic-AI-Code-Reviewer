@@ -1,5 +1,217 @@
 @import "tailwindcss";
 body {
-  @apply bg-gray-900 text-gray-100; /* Example dark theme base */
-  font-family: "Inter", sans-serif; /* A nice modern font, consider adding it via Google Fonts or similar */
+  @apply bg-gray-900 text-gray-100;
+  font-family: "Inter", sans-serif;
+}
+
+.styled-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-track {
+  background: #1a202c; /* Dark background color */
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb {
+  background: #4a5568; /* Scrollbar color */
+  border-radius: 4px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* Hover color */
+}
+
+/* Code block styling */
+pre {
+  background-color: #1a202c;
+  border: 1px solid #2d3748;
+  border-radius: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  padding: 1rem;
+  position: relative;
+}
+
+pre code {
+  color: #e2e8f0;
+  display: block;
+  font-size: inherit;
+  white-space: pre;
+  word-break: normal;
+}
+
+/* Keyword, property and value highlighting */
+.code-keyword {
+  color: #9f7aea; /* Purple */
+}
+
+.code-property {
+  color: #63b3ed; /* Blue */
+}
+
+.code-value {
+  color: #48bb78; /* Green */
+}
+
+.code-string {
+  color: #ed8936; /* Orange */
+}
+
+.code-comment {
+  color: #718096; /* Gray */
+  font-style: italic;
+}
+
+/* Syntax highlighting basic styles */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #718096;
+}
+
+.token.punctuation {
+  color: #cbd5e0;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ed8936;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #48bb78;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #cbd5e0;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #9f7aea;
+}
+
+.token.function,
+.token.class-name {
+  color: #63b3ed;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #fc8181;
+}
+
+/* Card animations */
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-animate {
+  animation: cardAppear 0.3s ease-out forwards;
+}
+
+/* Badge styling */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.badge-success {
+  background-color: rgba(72, 187, 120, 0.2);
+  color: #48bb78;
+}
+
+.badge-warning {
+  background-color: rgba(237, 137, 54, 0.2);
+  color: #ed8936;
+}
+
+.badge-error {
+  background-color: rgba(245, 101, 101, 0.2);
+  color: #f56565;
+}
+
+/* Issue item styling */
+.issue-item {
+  border-left: 3px solid transparent;
+  padding-left: 1rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.issue-critical {
+  border-left-color: #f56565;
+}
+
+.issue-major {
+  border-left-color: #ed8936;
+}
+
+.issue-minor {
+  border-left-color: #48bb78;
+}
+
+.issue-item:hover {
+  background-color: rgba(45, 55, 72, 0.5);
+}
+
+/* Focus styles */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+/* Code line numbers */
+.line-numbers {
+  counter-reset: line;
+  padding-left: 3rem;
+  position: relative;
+}
+
+.line-numbers > span {
+  position: relative;
+  display: block;
+}
+
+.line-numbers > span:before {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: -2.5rem;
+  width: 2rem;
+  color: #718096;
+  text-align: right;
+  user-select: none;
 }
