@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
+import apiService from "../services/api";
 import FeedbackCard from "../components/FeedbackCard";
 import RefactoringSuggestionCard from "../components/RefactoringSuggestionCard";
 import {
@@ -8,8 +9,12 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
   CpuChipIcon,
+  LinkIcon,
+  DocumentDuplicateIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import apiService from "../services/apiService";
+
+// --- Helper Components ---
 
 const GlobalLoader = ({ text = "Reviewing..." }) => (
   <div className="flex items-center justify-center space-x-2 py-3">
@@ -37,23 +42,87 @@ const GlobalLoader = ({ text = "Reviewing..." }) => (
   </div>
 );
 
-const languages = [
-  { id: "javascript", name: "JavaScript" },
-  { id: "python", name: "Python" },
-];
+const DocumentedCodeCard = ({
+  title = "Auto-Documented Code",
+  codeWithDocs,
+  isLoading,
+}) => {
+  const [copied, setCopied] = useState(false);
+  const codeRef = useRef(null);
+
+  const handleCopy = () => {
+    if (codeWithDocs) {
+      navigator.clipboard
+        .writeText(codeWithDocs)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch((err) => console.error("Failed to copy: ", err));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-gray-800 shadow-lg rounded-lg p-6 mb-6 animate-pulse">
+        <div className="h-6 bg-gray-700 rounded w-1/2 mb-4"></div>
+        <div className="h-40 bg-gray-700 rounded w-full mt-3"></div>
+      </div>
+    );
+  }
+  if (!codeWithDocs) return null;
+
+  return (
+    <div className="bg-gray-800 border border-gray-700 shadow-xl rounded-lg p-6 mb-8 relative group">
+      <button
+        onClick={handleCopy}
+        className="absolute top-4 right-4 p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-gray-300 hover:text-white transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+        title={copied ? "Copied!" : "Copy Code"}
+      >
+        {copied ? (
+          <ClipboardDocumentCheckIcon className="h-5 w-5 text-green-400" />
+        ) : (
+          <DocumentDuplicateIcon className="h-5 w-5" />
+        )}
+      </button>
+      <h3 className="text-xl font-semibold text-gray-100 mb-3 flex items-center pr-12">
+        <DocumentDuplicateIcon className="h-6 w-6 mr-2 text-green-400" />
+        {title}
+      </h3>
+      <pre
+        ref={codeRef}
+        className="text-sm text-gray-300 whitespace-pre-wrap font-mono bg-gray-900 p-4 rounded-md overflow-x-auto max-h-96"
+      >
+        {codeWithDocs}
+      </pre>
+    </div>
+  );
+};
+
+// --- Main Page Component ---
 
 function CodeInputPage() {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
+  const [fileUrl, setFileUrl] = useState("");
   const [reviewResult, setReviewResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
 
+  const languages = [
+    { id: "javascript", name: "JavaScript" },
+    { id: "python", name: "Python" },
+    { id: "typescript", name: "TypeScript" },
+  ];
+
+  const instructions = `1. Select language, then paste code, upload file, or enter a raw file URL.\n2. Get AI feedback on syntax, style, logic, bugs, refactoring, performance, and documentation.`;
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       setFileName(file.name);
+      setFileUrl(""); // Clear URL if a file is uploaded
       const reader = new FileReader();
       reader.onload = (e) => {
         setCode(e.target.result);
@@ -62,29 +131,53 @@ function CodeInputPage() {
     }
   };
 
+  const handleUrlChange = (event) => {
+    const newUrl = event.target.value;
+    setFileUrl(newUrl);
+    if (newUrl) {
+      setFileName("");
+      setCode("");
+    }
+  };
+
+  const handleCodeChange = (event) => {
+    const newCode = event.target.value;
+    setCode(newCode);
+    if (newCode) {
+      setFileName("");
+      setFileUrl("");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!code.trim()) {
-      setError("Code input cannot be empty.");
+    const trimmedCode = code.trim();
+    const trimmedUrl = fileUrl.trim();
+
+    if (!trimmedCode && !trimmedUrl) {
+      setError(
+        "Please paste code, upload a file, or provide a valid raw file URL."
+      );
       return;
     }
     setIsLoading(true);
     setError("");
-    setReviewResult(null); // Clear previous results
+    setReviewResult(null);
     try {
-      const data = await apiService.submitCodeForReview({ code, language });
-      setReviewResult(data); // This 'data' will now have more keys
+      const payload = { language };
+      if (trimmedUrl) {
+        payload.fileUrl = trimmedUrl;
+      } else {
+        payload.code = trimmedCode;
+      }
+      const data = await apiService.submitCodeForReview(payload);
+      setReviewResult(data);
     } catch (err) {
-      setError(
-        err.message ||
-          "Failed to get review. Please check the console for more details."
-      );
+      setError(err.message || "Failed to get review.");
       console.error("Review submission error:", err);
     }
     setIsLoading(false);
   };
-
-  const instructions = `1. Select programming language.\n2. Paste code or upload a file.\n3. Get AI feedback on syntax, style, logic, bugs, refactoring, and performance.`;
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center py-8 px-4 selection:bg-purple-500 selection:text-white">
@@ -150,11 +243,39 @@ function CodeInputPage() {
                   type="file"
                   className="sr-only"
                   onChange={handleFileChange}
-                  accept=".js,.py,.ts,.tsx,.java,.c,.cpp,.cs,.go,.php,.rb,.rs,.swift,.kt"
+                  accept=".js,.jsx,.py,.ts,.tsx,.java,.c,.cpp,.cs,.go,.php,.rb,.rs,.swift,.kt"
                 />
               </label>
             </div>
           </div>
+
+          <div>
+            <label
+              htmlFor="fileUrl"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Or Enter Raw File URL
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LinkIcon
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <input
+                type="url"
+                name="fileUrl"
+                id="fileUrl"
+                className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md shadow-sm py-2.5 px-3 pl-10 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., https://raw.githubusercontent.com/..."
+                value={fileUrl}
+                onChange={handleUrlChange}
+                disabled={!!fileName} // Disable if a file is selected
+              />
+            </div>
+          </div>
+
           <div>
             <label
               htmlFor="codeInput"
@@ -165,16 +286,18 @@ function CodeInputPage() {
             <textarea
               id="codeInput"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={handleCodeChange}
               rows="15"
-              className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
-              placeholder={`// Start typing or paste your ${language} code here...`}
+              className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm disabled:opacity-50 disabled:bg-gray-600"
+              placeholder="// Paste code, upload file, or use URL..."
+              disabled={!!fileName || !!fileUrl} // Disable if file or URL is used
             />
           </div>
+
           <div className="flex items-center justify-end">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (!code.trim() && !fileUrl.trim())}
               className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]"
             >
               {isLoading ? (
@@ -201,29 +324,17 @@ function CodeInputPage() {
 
         {isLoading && !reviewResult && (
           <div className="mt-8">
-            <FeedbackCard
-              title="Syntax & Style"
-              feedback={null}
-              isLoading={true}
-            />
-            <FeedbackCard
-              title="Logic & Bugs"
-              feedback={null}
-              isLoading={true}
-            />
-            <RefactoringSuggestionCard
-              title="Refactoring Suggestions"
-              suggestions={null}
-              isLoading={true}
-            />
+            <FeedbackCard title="Syntax & Style" isLoading={true} />
+            <FeedbackCard title="Logic & Bugs" isLoading={true} />
+            <RefactoringSuggestionCard isLoading={true} />
             <FeedbackCard
               title="Performance Insights"
-              feedback={null}
               isLoading={true}
               categoryIcon={
                 <CpuChipIcon className="h-6 w-6 mr-2 text-sky-400" />
               }
             />
+            <DocumentedCodeCard isLoading={true} />
           </div>
         )}
 
@@ -233,25 +344,35 @@ function CodeInputPage() {
               <CheckCircleIcon className="h-8 w-8 mr-3 text-green-400" />
               Review Analysis Complete
             </h2>
-            <FeedbackCard
-              title="Syntax & Style"
-              feedback={reviewResult.syntaxStyleFeedback}
-            />
-            <FeedbackCard
-              title="Logic & Bugs"
-              feedback={reviewResult.logicBugFeedback}
-            />
-            <RefactoringSuggestionCard
-              title="Refactoring Suggestions"
-              suggestions={reviewResult.refactoringSuggestions}
-            />
-            <FeedbackCard
-              title="Performance Insights"
-              feedback={reviewResult.performanceInsights}
-              categoryIcon={
-                <CpuChipIcon className="h-6 w-6 mr-2 text-sky-400" />
-              }
-            />
+            {reviewResult.documentedCode && (
+              <DocumentedCodeCard codeWithDocs={reviewResult.documentedCode} />
+            )}
+            {reviewResult.syntaxStyleFeedback && (
+              <FeedbackCard
+                title="Syntax & Style"
+                feedback={reviewResult.syntaxStyleFeedback}
+              />
+            )}
+            {reviewResult.logicBugFeedback && (
+              <FeedbackCard
+                title="Logic & Bugs"
+                feedback={reviewResult.logicBugFeedback}
+              />
+            )}
+            {reviewResult.refactoringSuggestions && (
+              <RefactoringSuggestionCard
+                suggestions={reviewResult.refactoringSuggestions}
+              />
+            )}
+            {reviewResult.performanceInsights && (
+              <FeedbackCard
+                title="Performance Insights"
+                feedback={reviewResult.performanceInsights}
+                categoryIcon={
+                  <CpuChipIcon className="h-6 w-6 mr-2 text-sky-400" />
+                }
+              />
+            )}
           </div>
         )}
       </main>
@@ -259,7 +380,7 @@ function CodeInputPage() {
       <footer className="mt-12 text-center text-gray-500 text-sm">
         <p>
           &copy; {new Date().getFullYear()} AI Code Reviewer. Powered by Gemini
-          & You.
+          & Ravyar Aram.
         </p>
       </footer>
     </div>
